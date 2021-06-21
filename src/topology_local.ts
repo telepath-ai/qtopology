@@ -17,7 +17,7 @@ class OutputRouterDestination {
 }
 
 /** States for the Local Process */
-enum TopologyLocalStatus {
+export enum TopologyLocalStatus {
     RUNNING = 'RUNNING',
     PAUSED = 'PAUSED',
     STOPPED = 'STOPPED',
