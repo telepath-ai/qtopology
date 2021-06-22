@@ -164,9 +164,6 @@
                     "working_dir": {
                         "type": "string"
                     },
-                    "cmd": {
-                        "type": "string"
-                    },
                     "subtype": {
                         "type": "string"
                     },
@@ -204,16 +201,13 @@
                             "module_method",
                             "inproc",
                             "sys",
-                            "cmd"
+                            "custom"
                         ]
                     },
                     "disabled": {
                         "type": ["boolean", "string"]
                     },
                     "working_dir": {
-                        "type": "string"
-                    },
-                    "cmd": {
                         "type": "string"
                     },
                     "subtype": {
