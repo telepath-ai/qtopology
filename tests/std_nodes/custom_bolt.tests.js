@@ -34,7 +34,7 @@ const CUSTOM_CONFIG_NODE= {
 
 describe('CustomBolt', function () {
     it('constructable', function () {
-        let target = TopologyNodeBase.createCustomNode(CUSTOM_CONFIG_NODE);
+        let target = TopologyNodeBase.createCustomNode(CUSTOM_CONFIG_NODE, 'BOLT');
     });
 
     it('init passes', function (done) {
@@ -45,7 +45,7 @@ describe('CustomBolt', function () {
                 emited.push({ data, stream_id });
             }
         };
-        let target = TopologyNodeBase.createCustomNode(CUSTOM_CONFIG_NODE);
+        let target = TopologyNodeBase.createCustomNode(CUSTOM_CONFIG_NODE, 'BOLT');
         target.init(name, config, null, (err) => {
             assert.ok(!err);
             done();
@@ -61,9 +61,11 @@ describe('CustomBolt', function () {
                 emited.push({ data, stream_id });
             }
         };
-        let target = TopologyNodeBase.createCustomNode(CUSTOM_CONFIG_NODE);
+        let target = TopologyNodeBase.createCustomNode(CUSTOM_CONFIG_NODE, 'BOLT');
         target.init(name, config, null, (err) => {
+            console.log({ err });
             assert.ok(!err);
+            console.log({ target })
             target.receive(xdata, xstream_id, (err) => {
                 assert.ok(!err);
                 assert.equal(emited.length, 1);

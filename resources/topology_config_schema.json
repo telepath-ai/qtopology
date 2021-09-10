@@ -164,6 +164,9 @@
                     "working_dir": {
                         "type": "string"
                     },
+                    "cmd": {
+                        "type": "string"
+                    },
                     "subtype": {
                         "type": "string"
                     },
@@ -209,6 +212,9 @@
                     },
                     "working_dir": {
                         "type": "string"
+                    },
+                    "cmd": {
+                        "type": "any"
                     },
                     "subtype": {
                         "type": "string"

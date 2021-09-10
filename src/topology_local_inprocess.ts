@@ -48,7 +48,6 @@ export class TopologyNodeBase {
         }
         return obj
     }
-z
     protected name: string;
     protected isError: boolean;
     protected firstErrorMessage: string;
@@ -637,6 +636,6 @@ export function createSysBolt(config) {
     return TopologyBoltWrapper.createSysBolt(config);
 }
 
-export function createCustomNode(config, type) {
+export function createCustomNode(config, type: 'BOLT' | 'SPOUT') {
     return TopologyNodeBase.createCustomNode(config, type);
 }

@@ -153,7 +153,7 @@ export class TopologyLocal extends EventEmitter {
                             this.onInternalError(e);
                         };
 
-                        bolt_config.emit = this.emit.bind(this);
+                        bolt_config.emit = (name, ...args: any[]) => this.emit('event', name, ...args);
 
                         const bolt = new top_inproc.TopologyBoltWrapper(bolt_config, context);
                         this.bolts.push(bolt);
@@ -183,7 +183,7 @@ export class TopologyLocal extends EventEmitter {
                             this.onInternalError(e);
                         };
 
-                        spout_config.emit = this.emit.bind(this);
+                        spout_config.emit = (name, ...args: any[]) => this.emit('event', name, ...args);
 
                         const spout = new top_inproc.TopologySpoutWrapper(spout_config, context);
                         this.spouts.push(spout);
@@ -227,6 +227,7 @@ export class TopologyLocal extends EventEmitter {
         for (const spout of this.spouts) {
             spout.run();
         }
+        this.emit('running');
         return callback();
     }
 
@@ -245,6 +246,7 @@ export class TopologyLocal extends EventEmitter {
         for (const spout of this.spouts) {
             spout.pause();
         }
+        this.emit('paused');
         return callback();
     }
 
@@ -331,11 +333,13 @@ export class TopologyLocal extends EventEmitter {
         } else {
             shutdownTasks();
         }
+        this.emit('shutdown');
     }
 
     /** Runs hard-core shutdown sequence */
     public shutdownHard() {
         if (this.config.general.shutdown_hard) {
+            this.emit('shutdownHard');
             if (this.shutdownHardCalled) {
                 return;
             }
@@ -363,6 +367,7 @@ export class TopologyLocal extends EventEmitter {
 
     /** Handler for all internal errors */
     private onInternalError(e: Error) {
+        this.emit('error', e);
         this.onErrorHandler(e);
     }
 
