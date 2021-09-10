@@ -7,6 +7,7 @@ import { tryCallback } from "./util/callback_wrappers";
 import { readJsonFileSync } from "./util/strip_json_comments";
 import { validate } from "./topology_validation";
 import { TopologyCompiler } from "./topology_compiler";
+import { EventEmitter } from "events";
 
 ////////////////////////////////////////////////////////////////////
 
@@ -61,7 +62,7 @@ export class OutputRouter {
 }
 
 /** This class runs local topology */
-export class TopologyLocal {
+export class TopologyLocal extends EventEmitter {
 
     private spouts: top_inproc.TopologySpoutWrapper[];
     private bolts: top_inproc.TopologyBoltWrapper[];
@@ -80,6 +81,7 @@ export class TopologyLocal {
 
     /** Constructor prepares the object before any information is received. */
     constructor(onError?: intf.SimpleCallback) {
+        super();
         this.spouts = [];
         this.bolts = [];
         this.config = null;
@@ -146,9 +148,13 @@ export class TopologyLocal {
                         bolt_config.onEmit = (data, stream_id, xcallback) => {
                             this.redirect(bolt_config.name, data, stream_id, xcallback);
                         };
+
                         bolt_config.onError = (e: Error) => {
                             this.onInternalError(e);
                         };
+
+                        bolt_config.emit = this.emit.bind(this);
+
                         const bolt = new top_inproc.TopologyBoltWrapper(bolt_config, context);
                         this.bolts.push(bolt);
                         tasks.push(xcallback => { bolt.init(xcallback); });
@@ -176,6 +182,9 @@ export class TopologyLocal {
                         spout_config.onError = (e: Error) => {
                             this.onInternalError(e);
                         };
+
+                        spout_config.emit = this.emit.bind(this);
+
                         const spout = new top_inproc.TopologySpoutWrapper(spout_config, context);
                         this.spouts.push(spout);
                         tasks.push(xcallback => {

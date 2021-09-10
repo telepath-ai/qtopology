@@ -48,7 +48,7 @@ export class TopologyNodeBase {
         }
         return obj
     }
-
+z
     protected name: string;
     protected isError: boolean;
     protected firstErrorMessage: string;
