@@ -153,7 +153,12 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         this.working_dir = config.working_dir;
         this.cmd = config.cmd;
         this.subtype = config.subtype;
-        this.init_params = config.init || {};
+        this.init_params = {
+            ...(config.init || {}),
+            emit(name, ...args) {
+                if (config.emit) config.emit(name, ...args);
+            }
+        };
         this.isError = false;
 
         try {
@@ -436,7 +441,12 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
         this.cmd = config.cmd;
         this.subtype = config.subtype;
         this.isError = false;
-        this.init_params = config.init || {};
+        this.init_params = {
+            ...(config.init || {}),
+            emit(name, ...args) {
+                if (config.emit) config.emit(name, ...args);
+            }
+        };
         this.init_params.onEmit = (data, stream_id, callback) => {
             config.onEmit(data, stream_id, callback);
         };
