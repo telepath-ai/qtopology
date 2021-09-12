@@ -50,6 +50,7 @@ describe('TopologyBoltInproc', function () {
                 done();
             });
         });
+
         it('Heartbeat should be properly called', function (done) {
             let emits = [];
             let config = {

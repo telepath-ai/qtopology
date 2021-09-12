@@ -123,7 +123,10 @@ export class TopologyLocal extends EventEmitter {
      * starts underlaying processes.
      */
     public init(uuid: string, config: any, callback: intf.SimpleCallback) {
-        callback = tryCallback(callback);
+        callback = (error?: Error) => {
+            this.emit('init');
+            tryCallback(callback)(error);
+        };
         try {
             if (this.isInitialized) {
                 return callback(new Error(this.logging_prefix + "Already initialized"));
@@ -213,7 +216,10 @@ export class TopologyLocal extends EventEmitter {
 
     /** Sends run signal to all spouts. Each spout.run is idempotent */
     public run(callback: intf.SimpleCallback) {
-        callback = tryCallback(callback);
+        callback = (error?: Error) => {
+            this.emit('run');
+            tryCallback(callback)(error);
+        };
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot run."));
         }
@@ -227,13 +233,15 @@ export class TopologyLocal extends EventEmitter {
         for (const spout of this.spouts) {
             spout.run();
         }
-        this.emit('running');
         return callback();
     }
 
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
     public pause(callback: intf.SimpleCallback) {
-        callback = tryCallback(callback);
+        callback = (error?: Error) => {
+            this.emit('paused');
+            tryCallback(callback)(error);
+        };
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
         }
@@ -246,13 +254,15 @@ export class TopologyLocal extends EventEmitter {
         for (const spout of this.spouts) {
             spout.pause();
         }
-        this.emit('paused');
         return callback();
     }
 
     /** Sends shutdown signal to all child processes */
     public shutdown(callback: intf.SimpleCallback) {
-        callback = tryCallback(callback);
+        callback = (error?: Error) => {
+            this.emit('shutdown');
+            tryCallback(callback)(error);
+        };
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot shutdown."));
         }
@@ -333,7 +343,6 @@ export class TopologyLocal extends EventEmitter {
         } else {
             shutdownTasks();
         }
-        this.emit('shutdown');
     }
 
     /** Runs hard-core shutdown sequence */
@@ -476,6 +485,7 @@ export class TopologyLocal extends EventEmitter {
                     }
                 },
                 (err: Error) => {
+                    this.emit('init');
                     callback(err, common_context);
                 }
             );
