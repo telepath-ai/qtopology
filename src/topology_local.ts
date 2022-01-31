@@ -7,6 +7,7 @@ import { tryCallback } from "./util/callback_wrappers";
 import { readJsonFileSync } from "./util/strip_json_comments";
 import { validate } from "./topology_validation";
 import { TopologyCompiler } from "./topology_compiler";
+import { EventEmitter } from "events";
 
 ////////////////////////////////////////////////////////////////////
 
@@ -61,7 +62,7 @@ export class OutputRouter {
 }
 
 /** This class runs local topology */
-export class TopologyLocal {
+export class TopologyLocal extends EventEmitter {
 
     private spouts: top_inproc.TopologySpoutWrapper[];
     private bolts: top_inproc.TopologyBoltWrapper[];
@@ -80,6 +81,7 @@ export class TopologyLocal {
 
     /** Constructor prepares the object before any information is received. */
     constructor(onError?: intf.SimpleCallback) {
+        super();
         this.spouts = [];
         this.bolts = [];
         this.config = null;
@@ -120,8 +122,11 @@ export class TopologyLocal {
     /** Initialization that sets up internal structure and
      * starts underlaying processes.
      */
-    public init(uuid: string, config: any, callback: intf.SimpleCallback) {
-        callback = tryCallback(callback);
+    public init(uuid: string, config: any, _callback: intf.SimpleCallback) {
+        const callback = (error?: Error) => {
+            this.emit('init');
+            return tryCallback(_callback)(error);
+        };
         try {
             if (this.isInitialized) {
                 return callback(new Error(this.logging_prefix + "Already initialized"));
@@ -146,9 +151,13 @@ export class TopologyLocal {
                         bolt_config.onEmit = (data, stream_id, xcallback) => {
                             this.redirect(bolt_config.name, data, stream_id, xcallback);
                         };
+
                         bolt_config.onError = (e: Error) => {
                             this.onInternalError(e);
                         };
+
+                        bolt_config.emit = (name, ...args: any[]) => this.emit('event', name, ...args);
+
                         const bolt = new top_inproc.TopologyBoltWrapper(bolt_config, context);
                         this.bolts.push(bolt);
                         tasks.push(xcallback => { bolt.init(xcallback); });
@@ -176,6 +185,9 @@ export class TopologyLocal {
                         spout_config.onError = (e: Error) => {
                             this.onInternalError(e);
                         };
+
+                        spout_config.emit = (name, ...args: any[]) => this.emit('event', name, ...args);
+
                         const spout = new top_inproc.TopologySpoutWrapper(spout_config, context);
                         this.spouts.push(spout);
                         tasks.push(xcallback => {
@@ -203,8 +215,11 @@ export class TopologyLocal {
     }
 
     /** Sends run signal to all spouts. Each spout.run is idempotent */
-    public run(callback: intf.SimpleCallback) {
-        callback = tryCallback(callback);
+    public run(_callback: intf.SimpleCallback) {
+        const callback = (error?: Error) => {
+            this.emit('run');
+            return tryCallback(_callback)(error);
+        };
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot run."));
         }
@@ -222,8 +237,11 @@ export class TopologyLocal {
     }
 
     /** Sends pause signal to all spouts. Each spout.pause is idempotent  */
-    public pause(callback: intf.SimpleCallback) {
-        callback = tryCallback(callback);
+    public pause(_callback: intf.SimpleCallback) {
+        const callback = (error?: Error) => {
+            this.emit('paused');
+            return tryCallback(_callback)(error);
+        };
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot be paused."));
         }
@@ -240,8 +258,11 @@ export class TopologyLocal {
     }
 
     /** Sends shutdown signal to all child processes */
-    public shutdown(callback: intf.SimpleCallback) {
-        callback = tryCallback(callback);
+    public shutdown(_callback: intf.SimpleCallback) {
+        const callback = (error?: Error) => {
+            this.emit('shutdown');
+            return tryCallback(_callback)(error);
+        };
         if (!this.isInitialized) {
             return callback(new Error(this.logging_prefix + "Topology not initialized and cannot shutdown."));
         }
@@ -327,6 +348,7 @@ export class TopologyLocal {
     /** Runs hard-core shutdown sequence */
     public shutdownHard() {
         if (this.config.general.shutdown_hard) {
+            this.emit('shutdownHard');
             if (this.shutdownHardCalled) {
                 return;
             }
@@ -355,6 +377,7 @@ export class TopologyLocal {
     /** Handler for all internal errors */
     private onInternalError(e: Error) {
         this.onErrorHandler(e);
+        this.emit('error', e);
     }
 
     /** Runs heartbeat pump until this object shuts down */
@@ -462,6 +485,7 @@ export class TopologyLocal {
                     }
                 },
                 (err: Error) => {
+                    this.emit('initContext');
                     callback(err, common_context);
                 }
             );

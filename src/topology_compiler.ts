@@ -115,7 +115,7 @@ export class TopologyCompiler {
 
     /** Returns compiled configuration . */
     public getWholeConfig(): any {
-        return JSON.parse(JSON.stringify(this.config));
+        return this.config;
     }
 
     /** Resolves all references to variables within variables */

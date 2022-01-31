@@ -4,15 +4,26 @@
   "description": "Distributed stream processing engine.",
   "main": "./built/index.js",
   "typings": "./built/index",
+  "files": [
+    "built",
+    "src",
+    "tsconfig.json",
+    "resources"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "npm run test-unit && cd demo && bash run_demos.sh",
     "test-unit": "mocha tests --recursive --timeout 10000",
     "prepare": "npm run format",
     "format": "./node_modules/.bin/tsfmt -r",
-    "lint": "./node_modules/.bin/tslint --project ."
+    "lint": "./node_modules/.bin/tslint --project .",
+    "postinstall": "npm run build"
   },
-  "repository": "https://github.com/qminer/qtopology.git",
+  "homepage": "https://github.com/s0c5/qtopology#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/s0c5/qtopology.git"
+  },
   "keywords": [
     "node.js"
   ],
@@ -29,23 +40,22 @@
   ],
   "license": "BSD-2-Clause",
   "readmeFilename": "README.md",
-  "devDependencies": {
+  "dependencies": {
     "@types/async": "^2.4.2",
     "@types/node": "^8.10.59",
-    "mocha": "^7.0.0",
-    "tslint": "^5.20.1",
-    "typescript": "^3.8.3",
-    "typescript-formatter": "^7.2.2"
-  },
-  "dependencies": {
     "async": "^1.5.2",
     "axios": "^0.21.1",
     "body-parser": "^1.19.0",
+    "cli-color": "^2.0.0",
     "colors": "1.2.1",
     "deserialize-error": "0.0.3",
     "express": "^4.17.1",
     "jsonschema": "^1.2.5",
+    "mocha": "^7.0.0",
     "qewd-transform-json": "^1.11.0",
-    "serialize-error": "^2.1.0"
+    "serialize-error": "^2.1.0",
+    "tslint": "^5.20.1",
+    "typescript": "^3.8.3",
+    "typescript-formatter": "^7.2.2"
   }
 }

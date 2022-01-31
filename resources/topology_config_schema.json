@@ -204,7 +204,7 @@
                             "module_method",
                             "inproc",
                             "sys",
-                            "cmd"
+                            "custom"
                         ]
                     },
                     "disabled": {
@@ -214,7 +214,7 @@
                         "type": "string"
                     },
                     "cmd": {
-                        "type": "string"
+                        "type": "any"
                     },
                     "subtype": {
                         "type": "string"

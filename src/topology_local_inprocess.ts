@@ -37,14 +37,17 @@ const NEXT_SLEEP_TIMEOUT: number = 1 * 1000; // number of miliseconds to "sleep"
 /** Base class for spouts and bolts - contains telemetry support */
 export class TopologyNodeBase {
     /** Factory Method For Custom Sys Nodes */
-    public static createCustomNode(bolt_config: any) {
+    public static createCustomNode(bolt_config: any, type: 'SPOUT' | 'BOLT') {
         let obj = bolt_config.cmd(bolt_config);
         if (obj.init.length < 4) {
-            obj = new BoltAsyncWrapper(obj);
+            if (type === 'BOLT') {
+                obj = new BoltAsyncWrapper(obj);
+            } else {
+                obj = new SpoutAsyncWrapper(obj);
+            }
         }
         return obj
     }
-
     protected name: string;
     protected isError: boolean;
     protected firstErrorMessage: string;
@@ -150,12 +153,17 @@ export class TopologySpoutWrapper extends TopologyNodeBase {
         this.working_dir = config.working_dir;
         this.cmd = config.cmd;
         this.subtype = config.subtype;
-        this.init_params = config.init || {};
+        this.init_params = {
+            ...(config.init || {}),
+            emit(name, ...args) {
+                if (config.emit) config.emit(name, ...args);
+            }
+        };
         this.isError = false;
 
         try {
             if (config.type == "custom") {
-                this.spout = createCustomNode(config);
+                this.spout = createCustomNode(config, 'SPOUT');
             } else if (config.type == "sys") {
                 this.spout = createSysSpout(config);
             } else if (config.type == "module_class") {
@@ -405,7 +413,6 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
             case "date2numeric_transform": return new ttb.DateToNumericTransformBolt();
             case "bomb": return new bb.BombBolt();
             case "counter": return new cntb.CounterBolt();
-            case "custom": return createCustomNode(bolt_config);
             default: throw new Error("Unknown sys bolt type: " + bolt_config.cmd);
         }
     }
@@ -434,7 +441,12 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
         this.cmd = config.cmd;
         this.subtype = config.subtype;
         this.isError = false;
-        this.init_params = config.init || {};
+        this.init_params = {
+            ...(config.init || {}),
+            emit(name, ...args) {
+                if (config.emit) config.emit(name, ...args);
+            }
+        };
         this.init_params.onEmit = (data, stream_id, callback) => {
             config.onEmit(data, stream_id, callback);
         };
@@ -453,7 +465,7 @@ export class TopologyBoltWrapper extends TopologyNodeBase {
 
         try {
             if (config.type == "custom") {
-                this.bolt = createCustomNode(config);
+                this.bolt = createCustomNode(config, 'BOLT');
             } else if (config.type == "sys") {
                 this.bolt = createSysBolt(config);
             } else if (config.type == "module_class") {
@@ -634,6 +646,6 @@ export function createSysBolt(config) {
     return TopologyBoltWrapper.createSysBolt(config);
 }
 
-export function createCustomNode(config) {
-    return TopologyNodeBase.createCustomNode(config);
+export function createCustomNode(config, type: 'BOLT' | 'SPOUT') {
+    return TopologyNodeBase.createCustomNode(config, type);
 }
